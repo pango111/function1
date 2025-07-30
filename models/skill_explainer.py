@@ -27,17 +27,13 @@ class SkillExplainer:
         """
         Initialize OpenAI client
         """
-        # 临时写死 API key（仅用于调试，生产环境应使用环境变量）
-        hardcoded_key = "sk-proj-iJPKIbripqI8mXVdJ0JDCu_fsv5ZIF2qwKCGfqnh5s0JmHQ-4bQ9C9-z1lmiNy0QwvkQ7aAI3P1bkEF5ZD"
-        
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY') or hardcoded_key
+        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
 
         logger.info(f"Initializing SkillExplainer...")
         logger.info(f"API key exists: {self.api_key is not None}")
         if self.api_key:
             logger.info(f"API key length: {len(self.api_key)}")
             logger.info(f"API key starts with: {self.api_key[:10] if len(self.api_key) >= 10 else 'too_short'}")
-            logger.info(f"Using hardcoded key: {self.api_key == hardcoded_key}")
 
         if not self.api_key:
             logger.warning("OpenAI API key not found. Explainer will be disabled.")
@@ -282,4 +278,5 @@ def test_skill_explainer():
 
 if __name__ == "__main__":
     test_skill_explainer()
+
 
