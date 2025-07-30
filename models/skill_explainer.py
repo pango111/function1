@@ -13,7 +13,9 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
-import openai
+
+# 使用新的 OpenAI 客户端
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -23,20 +25,26 @@ class SkillExplainer:
 
     def __init__(self, api_key: Optional[str] = None):
         """
-        Initialize OpenAI API Key
+        Initialize OpenAI client
         """
         self.api_key = api_key or os.getenv('OPENAI_API_KEY')
 
         if not self.api_key:
             logger.warning("OpenAI API key not found. Explainer will be disabled.")
+            self.client = None
             return
 
-        openai.api_key = self.api_key
-        logger.info("OpenAI API key loaded successfully.")
+        try:
+            # 使用新的 OpenAI 客户端初始化方式
+            self.client = OpenAI(api_key=self.api_key)
+            logger.info("OpenAI client initialized successfully.")
+        except Exception as e:
+            logger.error(f"Failed to initialize OpenAI client: {e}")
+            self.client = None
 
     def is_available(self) -> bool:
         """Check if explainer is available"""
-        return openai.api_key is not None
+        return self.client is not None
 
     def explain_skills(self, skills: List[str], job_category: str = "", max_retries: int = 2) -> Dict:
         """
@@ -62,7 +70,8 @@ class SkillExplainer:
 
             for attempt in range(max_retries + 1):
                 try:
-                    response = openai.ChatCompletion.create(
+                    # 使用新的 API 调用方式
+                    response = self.client.chat.completions.create(
                         model="gpt-4o-mini",
                         messages=[
                             {
@@ -214,6 +223,11 @@ def test_skill_explainer():
 
     if not explainer.is_available():
         print("⚠️ OpenAI API not available, testing fallback mode")
+        print(f"API key exists: {'OPENAI_API_KEY' in os.environ}")
+        if 'OPENAI_API_KEY' in os.environ:
+            key = os.getenv('OPENAI_API_KEY')
+            print(f"API key length: {len(key)}")
+            print(f"API key starts with: {key[:10] if key else 'None'}")
 
     test_skills = ["Python", "AWS", "Docker", "penetration testing", "SIEM"]
 
