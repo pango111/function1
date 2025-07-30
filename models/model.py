@@ -64,6 +64,20 @@ class HybridSkillExtractor:
         if not self.spacy_available:
             logger.info("HybridSkillExtractor falling back to rule-based extraction only")
 
+    def extract_all_skills(self, text):
+        """
+        Extract all skills using the hybrid approach - compatibility method
+        This method provides the same interface as BasicSkillExtractor.extract_all_skills()
+        
+        Args:
+            text: Job description text
+            
+        Returns:
+            List of extracted skills (combined from rule-based and TextRank)
+        """
+        extraction_result = self.extract_skills(text)
+        return extraction_result.get("combined_skills", [])
+
     def extract_skills(self, text, topn_textrank=15):
         """
         Extract skill-related phrases from job text using both rule-based
@@ -182,12 +196,17 @@ def test_hybrid_extractor():
     print(f"spaCy Available: {extractor.is_spacy_available()}")
     print(f"Extraction Info: {extractor.get_extraction_info()}")
     
+    # Test both methods
     result = extractor.extract_skills(test_text)
+    all_skills = extractor.extract_all_skills(test_text)
     
-    print(f"\n📊 Extraction Results:")
+    print(f"\n📊 extract_skills() Results:")
     print(f"Rule-based skills ({len(result['rule_based_skills'])}): {result['rule_based_skills']}")
     print(f"TextRank phrases ({len(result['textrank_phrases'])}): {result['textrank_phrases']}")
     print(f"Combined skills ({len(result['combined_skills'])}): {result['combined_skills']}")
+    
+    print(f"\n📊 extract_all_skills() Results:")
+    print(f"All skills ({len(all_skills)}): {all_skills}")
 
 if __name__ == "__main__":
     test_hybrid_extractor()
