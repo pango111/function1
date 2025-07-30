@@ -231,20 +231,130 @@ def load_model():
 def create_minimal_extractor():
     """Create a minimal skill extractor if imports fail"""
     class MinimalSkillExtractor:
+        def __init__(self):
+            # 扩展的技能关键词列表
+            self.skills_keywords = [
+                # Programming Languages
+                'python', 'java', 'javascript', 'c++', 'c#', 'php', 'ruby', 'go', 'rust', 'scala',
+                'perl', 'powershell', 'bash', 'shell scripting', 'sql', 'html', 'css',
+                
+                # Cybersecurity Core
+                'cybersecurity', 'information security', 'infosec', 'security', 'cyber security',
+                'data protection', 'privacy', 'compliance', 'risk management', 'security assessment',
+                
+                # Security Testing & Analysis
+                'penetration testing', 'pen testing', 'ethical hacking', 'vulnerability assessment',
+                'security testing', 'code review', 'threat modeling', 'risk assessment',
+                'security audit', 'compliance testing', 'red team', 'blue team',
+                
+                # Security Tools
+                'burp suite', 'nmap', 'metasploit', 'wireshark', 'nessus', 'qualys', 'openvas',
+                'kali linux', 'parrot os', 'aircrack-ng', 'john the ripper', 'hashcat',
+                'sqlmap', 'nikto', 'dirb', 'gobuster', 'hydra', 'ncat', 'netcat',
+                
+                # SIEM & Monitoring  
+                'siem', 'splunk', 'elastic', 'elasticsearch', 'logstash', 'kibana', 'elk stack',
+                'qradar', 'arcsight', 'sentinel', 'sumo logic', 'security monitoring',
+                'log analysis', 'event correlation', 'incident detection',
+                
+                # Incident Response & Forensics
+                'incident response', 'digital forensics', 'malware analysis', 'threat hunting',
+                'computer forensics', 'network forensics', 'memory forensics', 'disk forensics',
+                'incident handling', 'breach response', 'crisis management',
+                
+                # Cloud Security
+                'aws', 'amazon web services', 'azure', 'microsoft azure', 'gcp', 'google cloud',
+                'cloud security', 'aws security', 'azure security', 'cloud compliance',
+                'iam', 'identity and access management', 'cloud architecture',
+                
+                # Infrastructure & Systems
+                'linux', 'windows', 'unix', 'red hat', 'ubuntu', 'centos', 'debian',
+                'active directory', 'ldap', 'dns', 'dhcp', 'tcp/ip', 'networking',
+                'firewalls', 'firewall', 'iptables', 'pfsense', 'checkpoint', 'palo alto',
+                'cisco', 'juniper', 'fortinet', 'sonicwall',
+                
+                # Virtualization & Containers
+                'docker', 'kubernetes', 'vmware', 'hyper-v', 'containerization',
+                'orchestration', 'microservices', 'devops', 'devsecops',
+                
+                # Cryptography & PKI
+                'cryptography', 'encryption', 'pki', 'ssl', 'tls', 'certificates',
+                'digital certificates', 'key management', 'hashing', 'digital signatures',
+                
+                # Compliance & Standards
+                'iso 27001', 'nist', 'pci dss', 'hipaa', 'gdpr', 'sox', 'fisma',
+                'compliance', 'governance', 'audit', 'risk management', 'policy',
+                
+                # Network Security
+                'network security', 'vpn', 'ids', 'ips', 'intrusion detection',
+                'intrusion prevention', 'network monitoring', 'packet analysis',
+                'network segmentation', 'zero trust', 'network access control',
+                
+                # Application Security
+                'application security', 'web security', 'owasp', 'secure coding',
+                'static analysis', 'dynamic analysis', 'code scanning', 'sast', 'dast',
+                
+                # Identity & Access
+                'identity management', 'authentication', 'authorization', 'single sign-on',
+                'sso', 'multi-factor authentication', 'mfa', '2fa', 'privileged access',
+                'pam', 'rbac', 'access control',
+                
+                # Threat Intelligence
+                'threat intelligence', 'cti', 'ioc', 'indicators of compromise',
+                'threat feeds', 'malware signatures', 'yara rules', 'mitre att&ck',
+                
+                # Database Security
+                'database security', 'mysql', 'postgresql', 'oracle', 'mongodb',
+                'database encryption', 'data loss prevention', 'dlp',
+                
+                # Automation & Scripting
+                'automation', 'scripting', 'ansible', 'terraform', 'puppet', 'chef',
+                'api security', 'rest api', 'json', 'xml'
+            ]
+            
+            # 创建所有可能的变体
+            self.expanded_keywords = set()
+            for skill in self.skills_keywords:
+                self.expanded_keywords.add(skill.lower())
+                # 添加常见变体
+                self.expanded_keywords.add(skill.lower().replace(' ', ''))
+                self.expanded_keywords.add(skill.lower().replace(' ', '-'))
+                self.expanded_keywords.add(skill.lower().replace(' ', '_'))
+            
+            print(f"✅ MinimalSkillExtractor initialized with {len(self.expanded_keywords)} skill patterns")
+
         def extract_all_skills(self, text):
             if not text:
                 return []
+            
             text_lower = text.lower()
-            basic_skills = [
-                'python', 'java', 'javascript', 'cybersecurity', 'aws', 'azure',
-                'docker', 'kubernetes', 'mysql', 'react', 'angular', 'git',
-                'penetration testing', 'incident response', 'siem', 'firewall',
-                'burp suite', 'nmap', 'metasploit', 'linux', 'windows'
-            ]
             found_skills = []
-            for skill in basic_skills:
-                if skill in text_lower:
-                    found_skills.append(skill)
+            
+            # 使用更智能的匹配
+            for skill in self.skills_keywords:
+                skill_lower = skill.lower()
+                
+                # 直接匹配
+                if skill_lower in text_lower:
+                    if skill not in found_skills:
+                        found_skills.append(skill)
+                    continue
+                
+                # 无空格匹配
+                skill_nospace = skill_lower.replace(' ', '')
+                if skill_nospace in text_lower.replace(' ', ''):
+                    if skill not in found_skills:
+                        found_skills.append(skill)
+                    continue
+                
+                # 部分匹配 (对于复合词)
+                words = skill_lower.split()
+                if len(words) > 1:
+                    if all(word in text_lower for word in words):
+                        if skill not in found_skills:
+                            found_skills.append(skill)
+            
+            print(f"🔍 Extracted {len(found_skills)} skills: {found_skills[:10]}...")
             return found_skills
         
         def extract_skills(self, text):
@@ -255,7 +365,7 @@ def create_minimal_extractor():
                 "combined_skills": skills
             }
     
-    logger.info("✅ MinimalSkillExtractor created as fallback")
+    logger.info("✅ Enhanced MinimalSkillExtractor created as fallback")
     return MinimalSkillExtractor()
 
 def create_minimal_explainer():
