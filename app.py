@@ -937,37 +937,6 @@ def file_too_large(error):
     }), 413
 
 # Application startup
-if __name__ == '__main__':
-    print("🚀 Starting Job Classification Web Application")
-    print("=" * 60)
-    
-    # Load all components
-    load_model()
-    
-    # Status reporting
-    if model_loaded:
-        print("✅ JobClassifier: Trained model loaded")
-    else:
-        print("⚠️  JobClassifier: Using rule-based fallback")
-    
-    print(f"🔧 Skill Extractor: {extractor_mode}")
-    print(f"📊 Job Categories: {len(JOB_CATEGORIES)} supported")
-    
-    if skill_explainer and skill_explainer.is_available():
-        print("🎓 AI Skill Explainer: Available")
-    else:
-        print("⚠️  AI Skill Explainer: Not available")
-    
-    print(f"🌍 Environment: {os.getenv('ENVIRONMENT', 'development')}")
-    
-    # Choose startup method based on environment
-    if os.getenv('ENVIRONMENT') == 'production':
-        print("🚀 Starting production server...")
-        port = int(os.environ.get('PORT', 8080))
-        app.run(host='0.0.0.0', port=port, debug=False)
-    else:
-        print("🛠️  Starting development server...")
-        print("🌐 Access: http://localhost:5001")
-        app.run(debug=True, host='0.0.0.0', port=5001)
-    
-    print("=" * 60)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))  # Render默认端口是10000
+    app.run(host="0.0.0.0", port=port)
