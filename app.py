@@ -170,11 +170,13 @@ def load_model():
             try:
                 from skill_explainer import SkillExplainer
                 skill_explainer = SkillExplainer()
+                logger.info(f"🔍 SkillExplainer loaded from models, available: {skill_explainer.is_available()}")
             except ImportError:
                 # Try from root directory
                 sys.path.append(os.path.dirname(__file__))
                 from skill_explainer import SkillExplainer
                 skill_explainer = SkillExplainer()
+                logger.info(f"🔍 SkillExplainer loaded from root, available: {skill_explainer.is_available()}")
             
             if skill_explainer.is_available():
                 logger.info("✅ AI skill explainer loaded and ready")
@@ -905,6 +907,58 @@ def health_check():
         'ai_available': skill_explainer.is_available() if skill_explainer else False
     })
 
+# 修复后的调试端点
+@app.route('/debug/env', methods=['GET'])
+def debug_environment():
+    """Debug environment variables and skill explainer status"""
+    global skill_explainer
+    
+    return jsonify({
+        'openai_key_exists': 'OPENAI_API_KEY' in os.environ,
+        'openai_key_length': len(os.getenv('OPENAI_API_KEY', '')),
+        'skill_explainer_exists': skill_explainer is not None,
+        'skill_explainer_available': skill_explainer.is_available() if skill_explainer else False,
+        'skill_explainer_type': type(skill_explainer).__name__ if skill_explainer else None,
+        'environment_vars': list(os.environ.keys()),  # 不包含实际值
+        'models_loaded': {
+            'classifier': model_loaded,
+            'extractor': skill_extractor is not None,
+            'explainer': skill_explainer is not None
+        }
+    })
+
+# 添加一个测试OpenAI连接的端点
+@app.route('/debug/test-openai', methods=['GET'])
+def test_openai_connection():
+    """Test OpenAI connection"""
+    global skill_explainer
+    
+    if not skill_explainer:
+        return jsonify({
+            'success': False,
+            'error': 'Skill explainer not loaded'
+        })
+    
+    try:
+        # 测试技能解释功能
+        test_result = skill_explainer.explain_skills(
+            skills=['Python', 'JavaScript'],
+            job_category='Developer'
+        )
+        
+        return jsonify({
+            'success': True,
+            'explainer_available': skill_explainer.is_available(),
+            'test_result': test_result
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'explainer_available': skill_explainer.is_available() if skill_explainer else False
+        })
+
 # Error handling
 @app.errorhandler(404)
 def not_found(error):
@@ -935,17 +989,23 @@ def file_too_large(error):
         'success': False,
         'error': 'File too large. Maximum size is 16MB.'
     }), 413
-    
-@app.route('/debug/env', methods=['GET'])
-def debug_environment():
-    return {
-        'openai_key_exists': 'OPENAI_API_KEY' in os.environ,
-        'openai_key_length': len(os.getenv('OPENAI_API_KEY', '')),
-        'skill_explainer_available': SkillExplainer().is_available(),
-        'environment_vars': list(os.environ.keys())  # 不要包含实际值
-    }
 
 # Application startup
 if __name__ == "__main__":
+    # 在启动时加载模型
+    logger.info("🚀 Starting application...")
+    load_success = load_model()
+    
+    if load_success:
+        logger.info("✅ Application initialization successful")
+    else:
+        logger.warning("⚠️ Application started with limited functionality")
+    
+    # 启动时检查技能解释器状态
+    if skill_explainer:
+        logger.info(f"🔍 Skill explainer status: available={skill_explainer.is_available()}")
+    else:
+        logger.warning("❌ Skill explainer not loaded")
+    
     port = int(os.environ.get("PORT", 10000))  # Render默认端口是10000
     app.run(host="0.0.0.0", port=port)
