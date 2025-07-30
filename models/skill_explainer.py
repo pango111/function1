@@ -27,7 +27,17 @@ class SkillExplainer:
         """
         Initialize OpenAI client
         """
-        self.api_key = api_key or os.getenv('OPENAI_API_KEY')
+        # 临时写死 API key（仅用于调试，生产环境应使用环境变量）
+        hardcoded_key = "sk-proj-iJPKIbripqI8mXVdJ0JDCu_fsv5ZIF2qwKCGfqnh5s0JmHQ-4bQ9C9-z1lmiNy0QwvkQ7aAI3P1bkEF5ZD"
+        
+        self.api_key = api_key or os.getenv('OPENAI_API_KEY') or hardcoded_key
+
+        logger.info(f"Initializing SkillExplainer...")
+        logger.info(f"API key exists: {self.api_key is not None}")
+        if self.api_key:
+            logger.info(f"API key length: {len(self.api_key)}")
+            logger.info(f"API key starts with: {self.api_key[:10] if len(self.api_key) >= 10 else 'too_short'}")
+            logger.info(f"Using hardcoded key: {self.api_key == hardcoded_key}")
 
         if not self.api_key:
             logger.warning("OpenAI API key not found. Explainer will be disabled.")
@@ -38,8 +48,24 @@ class SkillExplainer:
             # 使用新的 OpenAI 客户端初始化方式
             self.client = OpenAI(api_key=self.api_key)
             logger.info("OpenAI client initialized successfully.")
+            
+            # 测试客户端是否工作
+            try:
+                # 简单的测试调用
+                logger.info("Testing OpenAI client connection...")
+                test_response = self.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": "Hello"}],
+                    max_tokens=5
+                )
+                logger.info("OpenAI client test successful.")
+            except Exception as test_error:
+                logger.error(f"OpenAI client test failed: {test_error}")
+                # 不要设置 self.client = None，让其他方法处理错误
+                
         except Exception as e:
             logger.error(f"Failed to initialize OpenAI client: {e}")
+            logger.error(f"Exception type: {type(e).__name__}")
             self.client = None
 
     def is_available(self) -> bool:
