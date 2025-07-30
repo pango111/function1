@@ -935,6 +935,15 @@ def file_too_large(error):
         'success': False,
         'error': 'File too large. Maximum size is 16MB.'
     }), 413
+    
+@app.route('/debug/env', methods=['GET'])
+def debug_environment():
+    return {
+        'openai_key_exists': 'OPENAI_API_KEY' in os.environ,
+        'openai_key_length': len(os.getenv('OPENAI_API_KEY', '')),
+        'skill_explainer_available': SkillExplainer().is_available(),
+        'environment_vars': list(os.environ.keys())  # 不要包含实际值
+    }
 
 # Application startup
 if __name__ == "__main__":
