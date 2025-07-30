@@ -431,11 +431,19 @@ def demo_predict(title, skillset):
     category = classify_job_category(text)
 
     try:
-        if extractor_mode == 'hybrid':
-            extraction = skill_extractor.extract_skills(skillset)
-            skills = extraction.get("combined_skills", [])
-        else:
-            skills = skill_extractor.extract_all_skills(skillset)
+        # 直接使用 BasicSkillExtractor，不依赖全局变量
+        logger.info("🔄 Creating fresh BasicSkillExtractor for prediction...")
+        
+        try:
+            from demo import BasicSkillExtractor
+            local_extractor = BasicSkillExtractor()
+            skills = local_extractor.extract_all_skills(skillset)
+            logger.info(f"✅ BasicSkillExtractor extracted {len(skills)} skills: {skills[:10]}...")
+        except Exception as e:
+            logger.error(f"❌ Failed to use BasicSkillExtractor: {e}")
+            # 使用 fallback
+            skills = extract_skills_fallback(skillset)
+            
     except Exception as e:
         logger.warning(f"Skill extraction failed: {e}")
         skills = []
